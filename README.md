@@ -96,14 +96,14 @@ C:\msys64\ucrt64\bin
 
 ### Windows Modification
 
-Enable mDNS
+- Enable mDNS
 
 ```cmd
 REG ADD "HKLM\Software\Policies\Microsoft\Windows NT\DNSClient" /V "EnableMulticast" /D "0" /T REG_DWORD /F
 ```
 
 - Enable Windows 10 ESU
-- Make extension visible
+- Make explorer's file extension be visible
 
 ### Software Modification
 
