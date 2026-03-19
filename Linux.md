@@ -22,15 +22,40 @@ pnpm config set registry "https://registry.npmmirror.com"
 pnpm
 ```
 
+## Passwordfree Login
+
+```sh
+mkdir -p ~/.ssh
+touch ~/.ssh/authorized_keys
+chmod 700 ~/.ssh
+chmod 600 ~/.ssh/authorized_keys
+#chown -R $USER:$USER ~/.ssh
+```
+
+Related SSH config (`sudo nano /etc/ssh/sshd_config`)
+```
+PubkeyAuthentication yes
+PasswordAuthentication no
+PermitRootLogin no
+```
+
 ## Ubuntu as a Workstation (UaaW)
+
+### Install OpenSSH Server
+
+```
+sudo apt update
+sudo apt install openssh-server
+sudo systemctl enable --now ssh
+```
 
 ### GNOME Network Manager
 
 Choose 1 of 2:
-- 1. Modify Network Manager (GNOME Network Manager) to allow specific user group, or
+- 1. Modify GNOME Network Manager to allow specific user group, or
 - 2. Use Netplan rather than NetworkManager 
 
-**Option1:**
+**Option 1:**
 
 ```sh
 sudo nano /etc/polkit-1/rules.d/10-network-manager.rules
@@ -45,7 +70,7 @@ polkit.addRule(function(action, subject) {
 });
 ```
 
-**Option2:**
+**Option 2:**
 
 ```sh
 cd /etc/netplan/
@@ -61,7 +86,16 @@ Then `sudo netplan apply`.
 sudo systemctl mask sleep.target suspend.target hibernate.target hybrid-sleep.target
 ```
 
-### Disable Laptop Lid Close to Sleep
+
+### Automatic Upgrade
+
+```
+sudo apt install unattended-upgrades
+sudo dpkg-reconfigure --priority=low unattended-upgrades
+```
+
+
+### [Laptop Only] Disable Laptop Lid Close to Sleep
 
 ```sh
 sudo nano /etc/systemd/logind.conf
@@ -86,3 +120,25 @@ Then
 ```sh
 sudo systemctl restart systemd-logind
 ```
+
+### [Laptop Only] Low Battery Shutdown
+
+Create a script:
+```sh
+THRESHOLD=20
+
+BATTERY_LEVEL=$(cat /sys/class/power_supply/BAT0/capacity)
+STATUS=$(cat /sys/class/power_supply/BAT0/status)
+if [ "$STATUS" = "Discharging" ] && [ "$BATTERY_LEVEL" -le $THRESHOLD ]; then
+    echo "Low batter, shutting down..."
+    shutdown -h now
+fi
+```
+
+Create crontab by `sudo crontab -e`, appemd
+
+```
+*/5 * * * * /bin/bash SCRIPT_PATH
+```
+
+
