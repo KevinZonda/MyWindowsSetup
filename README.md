@@ -24,14 +24,18 @@
 - LazyCat NAS: <https://lazycat.cloud/download>
 
 **IDEs/Editors:**
-- Antigravity: <https://antigravity.google/download>
+- Cursor: <https://cursor.com/download>
 - VSCode: <https://code.visualstudio.com/download>
+- Antigravity: <https://antigravity.google/download>
 - Visual Studio: <https://visualstudio.microsoft.com/downloads/>
 - Notepad++: <https://notepad-plus-plus.org/downloads/>
 
 **Agent CLIs:**
-- Gemini-CLI: <https://github.com/google-gemini/gemini-cli> or `npm install -g @google/gemini-cli`
-- qwen-code: <https://github.com/QwenLM/qwen-code> or `npm install -g @qwen-code/qwen-code@latest`
+- Claude Code: <https://claude.com/download> or `npm install -g @anthropic-ai/claude-code-win32-x64` or `npm install -g @anthropic-ai/claude-code`
+- OpenAI Codex: `npm i -g @openai/codex`
+- OpenCode: `npm i -g opencode-ai`
+- ~~Gemini-CLI: <https://github.com/google-gemini/gemini-cli> or `npm install -g @google/gemini-cli`~~
+- ~~qwen-code: <https://github.com/QwenLM/qwen-code> or `npm install -g @qwen-code/qwen-code@latest`~~
 
 **Collaboration:**
 - Feishu: <https://www.feishu.cn/en/>
@@ -53,6 +57,7 @@
 **Drivers:**
 - Intel Thunderbolt Control Center: <https://apps.microsoft.com/detail/9n6f0jv38ph1>  
   (if Microsoft Store doesn't work, use <https://store.rg-adguard.net/>)
+
 ## Env
 
 ### China Mirror Settings
