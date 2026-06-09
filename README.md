@@ -23,6 +23,9 @@
 - WinSCP: <https://winscp.net/eng/download.php>
 - LazyCat NAS: <https://lazycat.cloud/download>
 
+**Terminal:**
+- Windows Terminal: <https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-GB&gl=GB>
+
 **IDEs/Editors:**
 - Cursor: <https://cursor.com/download>
 - VSCode: <https://code.visualstudio.com/download>
@@ -136,3 +139,63 @@ mkdir "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wps
 mkdir "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wpscenter.exe"
 ```
 
+## Terminal
+
+Fix PowerShell cannot input Chinese:
+```
+Install-Module PSReadLine -Scope CurrentUser -Force # -SkipPublisherCheck
+```
+
+Use following reg to add terminal to context menu
+
+```reg
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\WindowsTerminal]
+@="Open in Windows Terminal"
+"Icon"="wt.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\WindowsTerminal\command]
+@="wt.exe -d \"%V\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\WindowsTerminal]
+@="Open in Windows Terminal"
+"Icon"="wt.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\WindowsTerminal\command]
+@="wt.exe -d \"%1\""
+
+[HKEY_CURRENT_USER\Software\Classes\Drive\shell\WindowsTerminal]
+@="Open in Windows Terminal"
+"Icon"="wt.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Drive\shell\WindowsTerminal\command]
+@="wt.exe -d \"%1\""
+```
+
+If you know where is wt, do:
+
+```reg
+Windows Registry Editor Version 5.00
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\WindowsTerminal]
+@="Open in Windows Terminal"
+"Icon"="C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.11321.0_x64__8wekyb3d8bbwe\\wt.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\Background\shell\WindowsTerminal\command]
+@="wt.exe -d \"%V\""
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\WindowsTerminal]
+@="Open in Windows Terminal"
+"Icon"="C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.11321.0_x64__8wekyb3d8bbwe\\wt.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Directory\shell\WindowsTerminal\command]
+@="wt.exe -d \"%1\""
+
+[HKEY_CURRENT_USER\Software\Classes\Drive\shell\WindowsTerminal]
+@="Open in Windows Terminal"
+"Icon"="C:\\Program Files\\WindowsApps\\Microsoft.WindowsTerminal_1.24.11321.0_x64__8wekyb3d8bbwe\\wt.exe"
+
+[HKEY_CURRENT_USER\Software\Classes\Drive\shell\WindowsTerminal\command]
+@="wt.exe -d \"%1\""
+```
