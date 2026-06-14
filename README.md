@@ -63,21 +63,6 @@
 
 ## Env
 
-### China Mirror Settings
-
-```
-pip config set global.index-url https://mirrors.aliyun.com/pypi/simple
-```
-
-```pwsh
-go env -w GO111MODULE=on
-go env -w GOPROXY=https://goproxy.cn,direct
-```
-
-```pwsh
-pnpm config set registry "https://registry.npmmirror.com"
-npm config set registry "https://registry.npmmirror.com"
-```
 ### SDKs Activation
 
 ```cmd
@@ -85,7 +70,7 @@ npm config set registry "https://registry.npmmirror.com"
 corepack enable
 ```
 
-```
+```sh
 pip isntall --upgrade pip
 pip install torch numpy matplotlib pandas lightning opencv-python scikit-learn scikit-image scipy seaborn
 ```
@@ -116,33 +101,11 @@ REG ADD "HKLM\Software\Policies\Microsoft\Windows NT\DNSClient" /V "EnableMultic
 
 ### Software Modification
 
-Puring WPS International
-```
-WPS_VERSION=12.2.0.23196
-USER=Kevin
-rm    "C:\Users\$USER\AppData\Local\Kingsoft\WPS Office\$WPS_VERSION\office6\wpscloudsvr.exe"
-rm    "C:\Users\$USER\AppData\Local\Kingsoft\WPS Office\$WPS_VERSION\office6\wpscloudlaunch.exe"
-rm    "C:\Users\$USER\AppData\Local\Kingsoft\WPS Office\$WPS_VERSION\office6\wpscenter.exe"
-mkdir "C:\Users\$USER\AppData\Local\Kingsoft\WPS Office\$WPS_VERSION\office6\wpscloudsvr.exe"
-mkdir "C:\Users\$USER\AppData\Local\Kingsoft\WPS Office\$WPS_VERSION\office6\wpscloudlaunch.exe"
-mkdir "C:\Users\$USER\AppData\Local\Kingsoft\WPS Office\$WPS_VERSION\office6\wpscenter.exe"
-```
-Or MSYS2
-```sh
-WPS_VERSION=12.2.0.23196
-USER=Kevin
-rm    "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wpscloudsvr.exe"
-rm    "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wpscloudlaunch.exe"
-rm    "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wpscenter.exe"
-mkdir "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wpscloudsvr.exe"
-mkdir "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wpscloudlaunch.exe"
-mkdir "/c/Users/$USER/AppData/Local/Kingsoft/WPS Office/$WPS_VERSION/office6/wpscenter.exe"
-```
-
 ## Terminal
 
 Fix PowerShell cannot input Chinese:
-```
+
+```pwsh
 Install-Module PSReadLine -Scope CurrentUser -Force # -SkipPublisherCheck
 ```
 
@@ -198,4 +161,14 @@ Windows Registry Editor Version 5.00
 
 [HKEY_CURRENT_USER\Software\Classes\Drive\shell\WindowsTerminal\command]
 @="wt.exe -d \"%1\""
+```
+
+## GB Layout Keyboard
+
+```reg
+Windows Registry Editor Version 5.00
+
+[HKEY_LOCAL_MACHINE\SYSTEM\CurrentControlSet\Control\Keyboard Layouts\00000804]
+"Layout File"="KBDUK.DLL"
+"Layout Text"="Chinese (Simplified) - GB Keyboard"
 ```
