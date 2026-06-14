@@ -67,6 +67,7 @@
 **Work:**
 - Office-Tool: <https://github.com/yerongai/office-tool>
 - DISM++: <https://github.com/Chuyu-Team/Dism-Multi-language>
+- Aomei Disktool: <https://www.disktool.cn/download.html> (Usage Code: 1122)
 
 **Drivers:**
 - Intel Thunderbolt Control Center: <https://apps.microsoft.com/detail/9n6f0jv38ph1>  
