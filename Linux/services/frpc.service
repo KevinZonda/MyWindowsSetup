@@ -1,0 +1,14 @@
+[Unit]
+Description=frp client
+Wants=network-online.target
+After=network.target network-online.target
+
+[Service]
+Restart=always
+RestartSec=5
+StartLimitInterval=90
+StartLimitBurst=3
+ExecStart=/usr/local/frpc/frpc -c /etc/frpc/frpc.toml
+
+[Install]
+WantedBy=multi-user.target
