@@ -35,9 +35,9 @@ chmod 600 ~/.ssh/authorized_keys
 ```
 
 Related SSH config (`sudo nano /etc/ssh/sshd_config`)
-```
+
+```txt
 PubkeyAuthentication yes
 PasswordAuthentication no
 PermitRootLogin no
 ```
-
