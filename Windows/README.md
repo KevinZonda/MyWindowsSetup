@@ -68,6 +68,9 @@
 - Office-Tool: <https://github.com/yerongai/office-tool>
 - DISM++: <https://github.com/Chuyu-Team/Dism-Multi-language>
 - Aomei Disktool: <https://www.disktool.cn/download.html> (Usage Code: 1122)
+- FDM: <https://www.freedownloadmanager.org/> -> <https://files2.freedownloadmanager.org/6/latest/fdm_x64_setup.exe>
+- Blender: <https://www.blender.org/download/>
+- MeshLab: <https://www.meshlab.net/#download> or <https://apps.microsoft.com/detail/9n4tl5dxc6c0>
 
 **Drivers:**
 - Intel Thunderbolt Control Center: <https://apps.microsoft.com/detail/9n6f0jv38ph1>  
