@@ -1,0 +1,35 @@
+Mermaid
+Markdown Preview Mermaid Support
+
+markdownlint
+
+Git Graph
+Git History
+
+Go
+Go Notebook Kernel
+Go Test Explorer
+
+Jupyter
+Jupyter Cell Tags
+Jupyter Notebook Renders
+Jupyter PowerToys
+Jupyter Slide Show
+
+LaTeX Workshop
+
+Python
+Python Debugger
+Python Environments
+
+Remote - SSH
+WSL
+Dev Containers
+
+Resource Monitor
+
+Test Adapter Converter
+Test Explorer UI
+
+Rainbow CSV
+Even Better TOML
