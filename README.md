@@ -11,13 +11,18 @@
 - Nodejs: <https://nodejs.org/en/download>
 - MSYS2: <https://www.msys2.org/>
 - OpenJDK: <https://learn.microsoft.com/en-gb/java/openjdk/download>
+- CUDA Tookit:
+  - 12.8 (Ampere): <https://developer.nvidia.com/cuda-12-8-0-download-archive>
+  - 11.7 (Volta/Pascal): <https://developer.nvidia.com/cuda-11-7-0-download-archive>
+- Build Tools for Visual Studio: <https://visualstudio.microsoft.com/downloads/?q=build+tools>
+- CMake: <https://cmake.org/download/>
 
 **Utilities:**
 - Chrome: <https://www.google.com/intl/en_uk/chrome/>
 - TwinkleTray: <https://github.com/xanderfrangos/twinkle-tray/releases/latest>
 - QuickLook: <https://github.com/QL-Win/QuickLook/releases/latest>
 - Flow Laucher: <https://www.flowlauncher.com/>
-- Windows Terminal: <https://github.com/microsoft/terminal/releases/latest>
+- Windows Terminal: <https://github.com/microsoft/terminal/releases/latest> or <https://apps.microsoft.com/detail/9n0dx20hk701>
 - Dism++: <https://github.com/Chuyu-Team/Dism-Multi-language/releases/latest>
 - WinRAR: <https://www.win-rar.com/download.html>
 - WinSCP: <https://winscp.net/eng/download.php>
@@ -25,6 +30,7 @@
 
 **Terminal:**
 - Windows Terminal: <https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-GB&gl=GB>
+- ~~Warp: <https://www.warp.dev>~~
 
 **IDEs/Editors:**
 - Cursor: <https://cursor.com/download>
@@ -34,8 +40,8 @@
 - Notepad++: <https://notepad-plus-plus.org/downloads/>
 
 **Agent CLIs:**
-- Claude Code: <https://claude.com/download> or `npm install -g @anthropic-ai/claude-code-win32-x64` or `npm install -g @anthropic-ai/claude-code`
 - OpenAI Codex: `npm i -g @openai/codex`
+- Claude Code: <https://claude.com/download> or `npm install -g @anthropic-ai/claude-code-win32-x64` or `npm install -g @anthropic-ai/claude-code`
 - OpenCode: `npm i -g opencode-ai`
 - ~~Gemini-CLI: <https://github.com/google-gemini/gemini-cli> or `npm install -g @google/gemini-cli`~~
 - ~~qwen-code: <https://github.com/QwenLM/qwen-code> or `npm install -g @qwen-code/qwen-code@latest`~~
@@ -44,18 +50,23 @@
 - Feishu: <https://www.feishu.cn/en/>
 - WeChat: <https://windows.weixin.qq.com/> or <https://www.wechat.com/>
 
-**Anti-Virus (Global Plan):**
-- Kaspersky (for heavy-load machines): <https://www.kaspersky.com.cn/> (for Chinese activation key) and <https://www.kaspersky.co.uk/> (for British or European activation key)
-- ESET (for light-weight machines): <https://www.eset.com/cn/>
 
-**Anti-Virus (China Plan):**
-- 360 SafeGuard (for general purpose): <https://weishi.360.cn/>
-- 360 SD (for general purpose): <https://sd.360.cn/>
-- Huorong (for light-usage): <https://www.huorong.cn/person>
+**Anti-Virus:**
+- for Global Region:
+  - Kaspersky (for heavy-load machines): <https://www.kaspersky.com.cn/> (for Chinese activation key) and <https://www.kaspersky.co.uk/> (for British or European activation key)
+  - ESET (for light-weight machines): <https://www.eset.com/cn/>
+- for Mainland, China Region:
+  - 360 SafeGuard (for general purpose): <https://weishi.360.cn/>
+  - 360 SD (for general purpose): <https://sd.360.cn/>
+  - Huorong (for light-usage): <https://www.huorong.cn/person>
 
 **Fonts:**
 - NFs: <https://www.nerdfonts.com/font-downloads>
 - OpenSans: <https://fonts.google.com/specimen/Open+Sans>
+
+**Work:**
+- Office-Tool: <https://github.com/yerongai/office-tool>
+- DISM++: <https://github.com/Chuyu-Team/Dism-Multi-language>
 
 **Drivers:**
 - Intel Thunderbolt Control Center: <https://apps.microsoft.com/detail/9n6f0jv38ph1>  
@@ -101,7 +112,7 @@ REG ADD "HKLM\Software\Policies\Microsoft\Windows NT\DNSClient" /V "EnableMultic
 
 ### Software Modification
 
-## Terminal
+#### Terminal
 
 Fix PowerShell cannot input Chinese:
 
