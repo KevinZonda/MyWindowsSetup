@@ -94,3 +94,7 @@ echo "alias sudo='gsudo'" >> ~/.bashrc
                 "useAcrylic": true
             },
 ```
+
+## Trust SSL for AntiVirus
+
+Refer to <https://www.msys2.org/docs/faq/#how-can-i-make-msys2pacman-trust-my-companys-custom-tls-ca-certificate>
