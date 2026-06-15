@@ -15,3 +15,4 @@ This is a reference for KevinZonda's device setups.
   - [Ubuntu as a Workstation](Linux/Ubuntu-as-a-Workstation.md)
 - [Mirrors](Mirrors.md)
 - [ZSH](zsh.md)
+- [VSCode Extension List](VSCode.txt)
