@@ -13,6 +13,8 @@ This is a reference for KevinZonda's device setups.
   - [General Induction](Linux/README.md)
   - [Path Spec](Linux/path.md)
   - [Ubuntu as a Workstation](Linux/Ubuntu-as-a-Workstation.md)
+- [macOS](macOS/)
+  - [General Induction](macOS/README.md)
 - [Mirrors](Mirrors.md)
 - [ZSH](zsh.md)
 - [VSCode Extension List](VSCode.txt)
