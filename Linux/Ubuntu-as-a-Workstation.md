@@ -54,30 +54,6 @@ sudo apt install unattended-upgrades
 sudo dpkg-reconfigure --priority=low unattended-upgrades
 ```
 
-Sysctl
-
-```sh
-sudo nano /etc/sysctl.conf
-```
-
-```
-# Decrease Swap usage
-# Validate via cat /proc/sys/vm/swappiness
-vm.swappiness=10
-
-# Enable BBR
-# Prereq: uname -r # >4.9
-# Validate via
-#     -> sysctl net.ipv4.tcp_congestion_control
-#     -> lsmod | grep bbr
-net.core.default_qdisc=fq
-net.ipv4.tcp_congestion_control=bbr
-```
-
-```sh
-sudo sysctl -p
-```
-
 ## [Laptop Only] Disable Laptop Lid Close to Sleep
 
 ```sh
@@ -106,7 +82,7 @@ Then
 sudo systemctl restart systemd-logind
 ```
 
-### [Laptop Only] Low Battery Shutdown
+## [Laptop Only] Low Battery Shutdown
 
 Create a script:
 

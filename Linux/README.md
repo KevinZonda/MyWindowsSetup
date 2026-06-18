@@ -41,3 +41,27 @@ PubkeyAuthentication yes
 PasswordAuthentication no
 PermitRootLogin no
 ```
+
+## BBR & Swapiness
+
+```sh
+sudo nano /etc/sysctl.conf
+```
+
+```ini
+# Decrease Swap usage
+# Validate via cat /proc/sys/vm/swappiness
+vm.swappiness=10
+
+# Enable BBR
+# Prereq: uname -r # >4.9
+# Validate via
+#     -> sysctl net.ipv4.tcp_congestion_control
+#     -> lsmod | grep bbr
+net.core.default_qdisc=fq
+net.ipv4.tcp_congestion_control=bbr
+```
+
+```sh
+sudo sysctl -p
+```
