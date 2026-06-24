@@ -13,6 +13,6 @@ pip install torch torchvision \
 
 pip install tqdm
 pip install numpy pandas
-pip install matplotlib seaborn
+pip install matplotlib seaborn pillow
 pip install opencv-python scipy scikit-learn scikit-image
 # pip install transformers diffusers
