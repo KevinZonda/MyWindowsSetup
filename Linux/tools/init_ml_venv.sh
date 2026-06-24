@@ -10,6 +10,7 @@ source venv/bin/activate
 
 pip install torch torchvision \
     --index-url "https://mirrors.nju.edu.cn/pytorch/whl/cu$CUDA_V"
+pip install tensorboard lightning
 
 pip install tqdm
 pip install numpy pandas
