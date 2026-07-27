@@ -19,6 +19,7 @@
 
 **Utilities:**
 - Chrome: <https://www.google.com/intl/en_uk/chrome/>
+- Windows 7 Classic Tools: <https://win7games.com>
 - TwinkleTray: <https://github.com/xanderfrangos/twinkle-tray/releases/latest>
 - QuickLook: <https://github.com/QL-Win/QuickLook/releases/latest>
 - Flow Laucher: <https://www.flowlauncher.com/>
@@ -27,6 +28,7 @@
 - WinRAR: <https://www.win-rar.com/download.html>
 - WinSCP: <https://winscp.net/eng/download.php>
 - LazyCat NAS: <https://lazycat.cloud/download>
+- Windows Photo: <https://apps.microsoft.com/detail/9wzdncrfjbh4?hl=en-GB&gl=GB>
 
 **Terminal:**
 - Windows Terminal: <https://apps.microsoft.com/detail/9n0dx20hk701?hl=en-GB&gl=GB>
@@ -42,7 +44,8 @@
 **Agent CLIs:**
 - OpenAI Codex: `npm i -g @openai/codex`
 - Claude Code: <https://claude.com/download> or `npm install -g @anthropic-ai/claude-code-win32-x64` or `npm install -g @anthropic-ai/claude-code`
-- OpenCode: `npm i -g opencode-ai`
+- Kimi Code: <https://www.kimi.com/code> or `irm https://code.kimi.com/kimi-code/install.ps1 | iex`
+- ~~OpenCode: `npm i -g opencode-ai`~~
 - ~~Gemini-CLI: <https://github.com/google-gemini/gemini-cli> or `npm install -g @google/gemini-cli`~~
 - ~~qwen-code: <https://github.com/QwenLM/qwen-code> or `npm install -g @qwen-code/qwen-code@latest`~~
 
