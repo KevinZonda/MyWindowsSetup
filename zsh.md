@@ -12,6 +12,13 @@ echo 'export LANG=en_GB.UTF-8' >> ~/.bashrc
 echo 'export LANG=en_GB.UTF-8' >> ~/.zshrc
 ```
 
+## Alias
+
+```
+echo "alias open='start'" >> ~/.bashrc
+echo "alias open='start'" >> ~/.zshrc
+```
+
 ## Install On-My-ZSH
 
 ```sh
