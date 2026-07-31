@@ -5,6 +5,13 @@ pacman -S zsh
 zsh
 ```
 
+## LANG
+
+```
+echo 'export LANG=en_GB.UTF-8' >> ~/.bashrc
+echo 'export LANG=en_GB.UTF-8' >> ~/.zshrc
+```
+
 ## Install On-My-ZSH
 
 ```sh
