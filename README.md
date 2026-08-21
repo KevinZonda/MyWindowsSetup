@@ -15,6 +15,7 @@ This is a reference for KevinZonda's device setups.
   - [Ubuntu as a Workstation](Linux/Ubuntu-as-a-Workstation.md)
 - [macOS](macOS/)
   - [General Induction](macOS/README.md)
+- [LLM](LLM/)
 - [Mirrors](Mirrors.md)
 - [ZSH](zsh.md)
 - [VSCode Extension List](VSCode.txt)

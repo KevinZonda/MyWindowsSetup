@@ -7,14 +7,15 @@ zsh
 
 ## LANG
 
-```
+```sh
 echo 'export LANG=en_GB.UTF-8' >> ~/.bashrc
 echo 'export LANG=en_GB.UTF-8' >> ~/.zshrc
 ```
 
 ## Alias
 
-```
+```sh
+# Windows Only
 echo "alias open='start'" >> ~/.bashrc
 echo "alias open='start'" >> ~/.zshrc
 ```
