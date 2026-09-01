@@ -99,3 +99,15 @@ macOS 中 Xbox 手柄按住 Xbox 按钮时会展开LauchPad。此为禁用脚本
 defaults write com.apple.GameController bluetoothPrefsMenuLongPressAction -integer 0
 defaults write com.apple.GameController bluetoothPrefsShareLongPressSystemGestureMode -integer -1
 ```
+
+## `pyenv` caused zsh hang
+
+`pyenv` may cause macOS cannot start its bash/zsh if it cannot acquire its lockfile.
+This is due to everytime, `pyenv` starts acquire a lock, and it may be killed without releasing its lock,
+so, it should be removed manually.
+
+```sh
+rm ~/.pyenv/shims/.pyenv-shim
+pyenv rehash
+source ~/.zshrc
+```
