@@ -65,3 +65,12 @@ net.ipv4.tcp_congestion_control=bbr
 ```sh
 sudo sysctl -p
 ```
+
+## Certbot
+
+```sh
+sudo snap install --classic certbot
+sudo ln -s /snap/bin/certbot /usr/local/bin/certbot
+sudo certbot --nginx
+# sudo certbot renew --dry-run
+```
