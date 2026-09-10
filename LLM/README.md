@@ -14,6 +14,7 @@
 | <https://www.coding-plan.xyz><br><https://github.com/will-17173/coding-plan-collection> | Chinese Coding Plan |
 | <https://codexradar.com> | Codex Radar |
 | <https://claudecoderadar.com> | Claude Code Radar |
+| <https://llm2014.github.io/llm_benchmark> | LLM Ranking |
 
 ## Subs
 
