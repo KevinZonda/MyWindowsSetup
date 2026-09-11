@@ -110,7 +110,7 @@ cd /var/lib/containers/storage/overlay-containers/927895e7d70a8d58e4afbad7374c67
 ## Step 6. 启动容器
 
 ```sh
-sudo systemctl start podman podman.sock
+sudo systemctl start podman podman.socket
 sudo podman start 927895e7d70a8d58e4afbad7374c67d87d2cc357b5ee71cb4ed974cb840b13d9
 ```
 
