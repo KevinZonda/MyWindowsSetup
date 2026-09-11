@@ -8,7 +8,7 @@
 
 ```sh
 sudo podman stop 927895e7d70a8d58e4afbad7374c67d87d2cc357b5ee71cb4ed974cb840b13d9
-sudo systemctl stop podman podman.sock
+sudo systemctl stop podman podman.socket
 ```
 
 ## Step 2. 备份容器配置数据库
