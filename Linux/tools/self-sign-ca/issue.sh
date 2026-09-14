@@ -2,23 +2,23 @@
 set -euo pipefail
 
 # ============================================================
-# KevinZonda One-Time Certificate Authority
+# KevinZonda One-Time TLS Server Certificate Authority
 #
 # Usage:
-#   ./issue.sh [client-name] [output-dir]
+#   ./issue.sh [server-name] [output-dir]
 #
 # Example:
-#   ./issue.sh kevinnas ./certs
+#   ./issue.sh '*.kvzd.cn' ./certs
 #
 # Output:
-#   ca.crt       -> put on verifier / server side
-#   client.crt   -> put on client side
-#   client.key   -> put on client side, KEEP SECRET
+#   ca.crt       -> put on verifier / upstream client side
+#   server.crt   -> put on TLS server side
+#   server.key   -> put on TLS server side, KEEP SECRET
 #
-# CA private key is DESTROYED after signing.
+# The CA private key is DESTROYED after signing.
 # ============================================================
 
-CLIENT_NAME="${1:-kevinnar-frpc}"
+SERVER_NAME="${1:-*.kvzd.cn}"
 OUT_DIR="${2:-./certs}"
 
 # 10 years
@@ -32,15 +32,18 @@ chmod 700 "$OUT_DIR"
 CA_KEY="$OUT_DIR/.ca.key"
 CA_CRT="$OUT_DIR/ca.crt"
 
-CLIENT_KEY="$OUT_DIR/client.key"
-CLIENT_CSR="$OUT_DIR/.client.csr"
-CLIENT_CRT="$OUT_DIR/client.crt"
+SERVER_KEY="$OUT_DIR/server.key"
+SERVER_CSR="$OUT_DIR/.server.csr"
+SERVER_CRT="$OUT_DIR/server.crt"
 
 CA_CONF="$OUT_DIR/.ca.cnf"
-CLIENT_CONF="$OUT_DIR/.client.cnf"
+SERVER_CONF="$OUT_DIR/.server.cnf"
 
-# Refuse accidental overwrite.
-for f in "$CA_CRT" "$CLIENT_KEY" "$CLIENT_CRT"; do
+# ------------------------------------------------------------
+# Refuse accidental overwrite
+# ------------------------------------------------------------
+
+for f in "$CA_CRT" "$SERVER_KEY" "$SERVER_CRT"; do
     if [[ -e "$f" ]]; then
         echo "ERROR: $f already exists."
         exit 1
@@ -78,32 +81,36 @@ CN = ${CA_CN}
 basicConstraints = critical, CA:TRUE, pathlen:0
 keyUsage = critical, keyCertSign, cRLSign
 subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid:always
 EOF
 
-openssl req -new -x509 -sha256 \
+openssl req \
+    -new \
+    -x509 \
+    -sha256 \
     -days "$VALID_DAYS" \
     -key "$CA_KEY" \
     -out "$CA_CRT" \
     -config "$CA_CONF"
 
 
-echo "[3/7] Generating client private key..."
+echo "[3/7] Generating server private key..."
 
 openssl genpkey \
     -algorithm EC \
     -pkeyopt ec_paramgen_curve:P-256 \
-    -out "$CLIENT_KEY"
+    -out "$SERVER_KEY"
 
-chmod 600 "$CLIENT_KEY"
+chmod 600 "$SERVER_KEY"
 
 
-echo "[4/7] Creating client CSR..."
+echo "[4/7] Creating server CSR..."
 
-cat > "$CLIENT_CONF" <<EOF
+cat > "$SERVER_CONF" <<EOF
 [req]
 prompt = no
 distinguished_name = dn
-req_extensions = req_ext
+req_extensions = v3_server
 
 [dn]
 C  = GB
@@ -111,48 +118,54 @@ ST = Greater London
 L  = London
 O  = KevinZonda Research
 OU = One-Time Certificate
-CN = ${CLIENT_NAME}
+CN = ${SERVER_NAME}
 
-[req_ext]
+[v3_server]
 basicConstraints = critical, CA:FALSE
 keyUsage = critical, digitalSignature
-extendedKeyUsage = clientAuth
+extendedKeyUsage = serverAuth
 subjectKeyIdentifier = hash
+authorityKeyIdentifier = keyid,issuer
+subjectAltName = DNS:${SERVER_NAME}
 EOF
 
-openssl req -new -sha256 \
-    -key "$CLIENT_KEY" \
-    -out "$CLIENT_CSR" \
-    -config "$CLIENT_CONF"
+openssl req \
+    -new \
+    -sha256 \
+    -key "$SERVER_KEY" \
+    -out "$SERVER_CSR" \
+    -config "$SERVER_CONF"
 
 
-echo "[5/7] Signing client certificate..."
+echo "[5/7] Signing server certificate..."
 
 # Random 128-bit certificate serial.
 SERIAL_HEX="$(openssl rand -hex 16)"
 
-openssl x509 -req -sha256 \
+openssl x509 \
+    -req \
+    -sha256 \
     -days "$VALID_DAYS" \
-    -in "$CLIENT_CSR" \
+    -in "$SERVER_CSR" \
     -CA "$CA_CRT" \
     -CAkey "$CA_KEY" \
     -set_serial "0x${SERIAL_HEX}" \
-    -out "$CLIENT_CRT" \
-    -extfile "$CLIENT_CONF" \
-    -extensions req_ext
+    -out "$SERVER_CRT" \
+    -extfile "$SERVER_CONF" \
+    -extensions v3_server
 
 
-echo "[6/7] Verifying certificate..."
+echo "[6/7] Verifying server certificate..."
 
 openssl verify \
-    -purpose sslclient \
+    -purpose sslserver \
     -CAfile "$CA_CRT" \
-    "$CLIENT_CRT"
+    "$SERVER_CRT"
 
 echo
 
 openssl x509 \
-    -in "$CLIENT_CRT" \
+    -in "$SERVER_CRT" \
     -noout \
     -subject \
     -issuer \
@@ -161,31 +174,44 @@ openssl x509 \
     -fingerprint \
     -sha256
 
+echo
+
+openssl x509 \
+    -in "$SERVER_CRT" \
+    -noout \
+    -ext subjectAltName \
+    -ext extendedKeyUsage \
+    -ext keyUsage \
+    -ext basicConstraints
+
 
 echo
 echo "[7/7] Destroying one-time CA private key..."
 
-# Remove temporary material.
+# Remove sensitive and temporary material.
 rm -f \
     "$CA_KEY" \
-    "$CLIENT_CSR" \
+    "$SERVER_CSR" \
     "$CA_CONF" \
-    "$CLIENT_CONF"
+    "$SERVER_CONF"
 
-chmod 644 "$CA_CRT" "$CLIENT_CRT"
-chmod 600 "$CLIENT_KEY"
+chmod 644 "$CA_CRT" "$SERVER_CRT"
+chmod 600 "$SERVER_KEY"
 
 
 echo
 echo "============================================================"
 echo "Certificate provisioning complete."
 echo
-echo "Server / verifier:"
+echo "Verifier / upstream client:"
 echo "  $CA_CRT"
 echo
-echo "Client:"
-echo "  $CLIENT_CRT"
-echo "  $CLIENT_KEY"
+echo "TLS server:"
+echo "  $SERVER_CRT"
+echo "  $SERVER_KEY"
+echo
+echo "Certificate name:"
+echo "  $SERVER_NAME"
 echo
 echo "CA private key:"
 echo "  DESTROYED"
