@@ -110,7 +110,7 @@ cat > "$SERVER_CONF" <<EOF
 [req]
 prompt = no
 distinguished_name = dn
-req_extensions = v3_server
+req_extensions = v3_req
 
 [dn]
 C  = GB
@@ -120,13 +120,36 @@ O  = KevinZonda Research
 OU = One-Time Certificate
 CN = ${SERVER_NAME}
 
+# ------------------------------------------------------------
+# Extensions embedded in CSR
+#
+# IMPORTANT:
+# authorityKeyIdentifier must NOT be here because a CSR has
+# no issuer certificate yet.
+# ------------------------------------------------------------
+
+[v3_req]
+basicConstraints = critical, CA:FALSE
+keyUsage = critical, digitalSignature
+extendedKeyUsage = serverAuth
+subjectAltName = @alt_names
+
+# ------------------------------------------------------------
+# Extensions used when the CA signs the final certificate.
+#
+# At this point an issuer exists, so SKI / AKI can be generated.
+# ------------------------------------------------------------
+
 [v3_server]
 basicConstraints = critical, CA:FALSE
 keyUsage = critical, digitalSignature
 extendedKeyUsage = serverAuth
 subjectKeyIdentifier = hash
-authorityKeyIdentifier = keyid,issuer
-subjectAltName = DNS:${SERVER_NAME}
+authorityKeyIdentifier = keyid:always,issuer
+subjectAltName = @alt_names
+
+[alt_names]
+DNS.1 = ${SERVER_NAME}
 EOF
 
 openssl req \
@@ -182,7 +205,9 @@ openssl x509 \
     -ext subjectAltName \
     -ext extendedKeyUsage \
     -ext keyUsage \
-    -ext basicConstraints
+    -ext basicConstraints \
+    -ext subjectKeyIdentifier \
+    -ext authorityKeyIdentifier
 
 
 echo
