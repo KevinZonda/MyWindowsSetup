@@ -20,6 +20,21 @@ echo "alias open='start'" >> ~/.bashrc
 echo "alias open='start'" >> ~/.zshrc
 ```
 
+## Plugins
+
+```
+git clone https://github.com/zsh-users/zsh-autosuggestions ~/.zsh/zsh-autosuggestions
+
+echo 'ZSH_AUTOSUGGEST_STRATEGY=(history completion)' >> ~/.zshrc
+echo 'source ~/.zsh/zsh-autosuggestions/zsh-autosuggestions.zsh' >> ~/.zshrc
+```
+
+```
+# macOS
+brew install zsh-syntax-highlighting
+echo 'source /opt/homebrew/share/zsh-syntax-highlighting/zsh-syntax-highlighting.zsh' >> ~/.zshrc
+```
+
 ## Install On-My-ZSH
 
 ```sh
