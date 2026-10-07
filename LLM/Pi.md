@@ -54,3 +54,31 @@
   "hideStatus": true
 }
 ```
+
+## Theme
+
+```sh
+mkdir -p ~/.pi/agent/themes
+curl -L https://raw.githubusercontent.com/minuque/pi-cc-extensions/main/themes/cc-dark.json \
+  -o ~/.pi/agent/themes/claude-dark.json
+```
+
+```
+nano ~/.pi/agent/themes/claude-dark.json
+```
+
+replace
+
+```
+"accent": "#5e9cff",
+"accentBright": "#8ab4ff"
+```
+
+to
+```
+"accent": "#D97757",
+"accentBright": "#E99578"
+```
+
+
+`"name": "cc-dark"` to `"name": "claude-dark"`
