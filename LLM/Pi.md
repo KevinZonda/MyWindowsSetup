@@ -4,7 +4,6 @@
 
 ```json
 {
-  "lastChangelogVersion": "1.0.4",
   "defaultProvider": "openai",
   "defaultModel": "gpt-6.1-sol",
   "packages": [
@@ -18,13 +17,16 @@
     "npm:@dietrichgebert/ponytail",
     "npm:pi-cc-extensions",
     "npm:@narumitw/pi-btw",
-    "npm:pi-interactive-shell"
+    "npm:pi-interactive-shell",
+    "npm:pi-tab-title",
+    "npm:@gotgenes/pi-permission-system",
+    "npm:cc-safety-net"
   ],
   "compaction": {
     "enabled": true
   },
   "tuiMode": "fullscreen",
-  "theme": "cc-dark",
+  "theme": "claude-dark",
   "terminal": {
     "showTerminalProgress": true
   },
@@ -82,3 +84,26 @@ to
 
 
 `"name": "cc-dark"` to `"name": "claude-dark"`
+
+## Permission `@gotgenes/pi-permission-system`
+
+`~/.pi/agent/extensions/pi-permission-system/config.json`:
+```json
+{
+  "permission": {
+    "*": "allow",
+    "path": {
+      "*": "allow",
+      "*.env": "deny",
+      "*.env.*": "deny",
+      "*.env.example": "allow"
+    },
+    "bash": {
+      "*": "ask",
+      "rm -rf *": "deny",
+      "sudo *": "ask"
+    },
+    "external_directory": "ask"
+  }
+}
+```
