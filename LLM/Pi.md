@@ -72,14 +72,33 @@ nano ~/.pi/agent/themes/claude-dark.json
 replace
 
 ```
-"accent": "#5e9cff",
-"accentBright": "#8ab4ff"
-```
-
-to
-```
-"accent": "#D97757",
-"accentBright": "#E99578"
+	"vars": {
+		"bg": "#1f1f1f",
+		"panel": "#252525",
+		"surface": "#2b2b2b",
+		"surfaceRaised": "#333333",
+		"border": "#444444",
+		"borderMuted": "#292631",
+		"accent": "#D97757",
+		"accentBright": "#E99578",
+		"purple": "#c084fc",
+		"pink": "#f472b6",
+		"cyan": "#67e8f9",
+		"blue": "#60a5fa",
+		"green": "#4ade80",
+		"red": "#fb7185",
+		"yellow": "#facc15",
+		"orange": "#fb923c",
+		"text": "#f5f5f5",
+		"muted": "#a1a1aa",
+		"dim": "#71717a",
+		"selectedBg": "#252035",
+		"userMessageBg": "#373737",
+		"toolPendingBg": "#252525",
+		"toolSuccessBg": "#252525",
+		"toolErrorBg": "#382528",
+		"customMessageBg": "#2b2b2b"
+	},
 ```
 
 
