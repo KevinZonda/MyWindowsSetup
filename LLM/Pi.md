@@ -9,7 +9,6 @@
   "defaultModel": "gpt-6.1-sol",
   "packages": [
     "npm:pi-web-access",
-    "npm:pi-subagents",
     "npm:@juicesharp/rpiv-ask-user-question",
     "npm:@juicesharp/rpiv-todo",
     "npm:pi-goal-x",
@@ -28,25 +27,37 @@
     "npm:@narumitw/pi-codex-compact",
     "git:github.com/KevinZonda/pi-enhance-patches",
     "npm:pi-background-tasks",
-    "npm:@narumitw/pi-usage"
+    "npm:@narumitw/pi-usage",
+    "npm:@gotgenes/pi-subagents"
   ],
   "compaction": {
     "enabled": true
   },
   "tuiMode": "fullscreen",
-  "theme": "claude-dark",
+  "theme": "claude-light/claude-dark",
   "terminal": {
     "showTerminalProgress": true
   },
   "enableInstallTelemetry": false,
   "quietStartup": true,
-  "steeringMode": "one-at-a-time",
   "enabledModels": [
     "openai-codex/gpt-6.1-sol",
     "openai-codex/gpt-6-astra",
     "openai-codex/gpt-5.6-sol"
-  ]
-} 
+  ],
+  "treeFilterMode": "user-only",
+  "branchSummary": {
+    "skipPrompt": true
+  }
+}
+```
+
+`~/.pi/agent/keybindings.json`:
+
+```
+{
+  "app.message.followUp": "tab"
+}
 ```
 
 ## Others
