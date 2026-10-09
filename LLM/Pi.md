@@ -27,7 +27,8 @@
     "git:github.com/KevinZonda/pi-cc-extension-patches",
     "npm:@narumitw/pi-codex-compact",
     "git:github.com/KevinZonda/pi-enhance-patches",
-    "npm:pi-background-tasks"
+    "npm:pi-background-tasks",
+    "npm:@narumitw/pi-usage"
   ],
   "compaction": {
     "enabled": true
@@ -39,8 +40,13 @@
   },
   "enableInstallTelemetry": false,
   "quietStartup": true,
-  "steeringMode": "one-at-a-time"
-}%    
+  "steeringMode": "one-at-a-time",
+  "enabledModels": [
+    "openai-codex/gpt-6.1-sol",
+    "openai-codex/gpt-6-astra",
+    "openai-codex/gpt-5.6-sol"
+  ]
+} 
 ```
 
 ## Others
