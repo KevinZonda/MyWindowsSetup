@@ -102,6 +102,7 @@ flowchart TB
     subgraph DomainB["domain B"]
         SvcB["svc 包级函数"] --> DaoB["dao"]
     end
+    Gin["Gin"] --> HandlerA
     HandlerA -->|跨 domain 调用| SvcB
     SvcA -->|跨 domain 调用| DaoB
     SvcA -->|获取共享资源| SharedDB["shared 中的 DB 等资源"]
@@ -148,7 +149,7 @@ flowchart TD
 domain/
     -> 0.go: 组装各个 domain，传入所需资源，并按需初始化调用入口
     -> $domainName/
-        -> 0.go: 定义 Domain、构造参数和 New，创建并持有 svc 实例
+        -> 0.go: 定义 Domain、构造参数和 New，创建并持有 svc 实例；可提供 InitAll 组合初始化入口
         -> init_http.go: 可选，注册 HTTP 路由，将本 domain 的 svc 注入 handler
         -> init_func_call.go: 可选，定义 InitFuncCall，调用 funcCall.Init 绑定公共 svc
         -> funcCall/: 对外提供包级业务函数
@@ -193,6 +194,7 @@ flowchart TB
     end
     OrderSvc -->|直接调用| InventoryFuncCall
     OrderHandler -->|也可直接调用| InventoryFuncCall
+    Gin["Gin"] --> OrderHandler
     OrderSvc -->|持有引用| DB["外层创建的 DB 等资源"]
     InventorySvc -->|持有引用| DB
 ```
@@ -227,6 +229,19 @@ err = d.InitFuncCall()  // 按需初始化进程内函数调用入口
   -> 返回 error，成功时为 nil
 ```
 
+同时需要 HTTP 和 funcCall 入口时，可以提供 `InitAll(engine) error`，依次调用 `InitHttp(engine)` 和 `InitFuncCall()`。只需一种入口时，仍可单独调用相应方法。
+
+```go
+func (d *Domain) InitAll(engine *gin.Engine) error {
+    if err := d.InitHttp(engine); err != nil {
+        return err
+    }
+    return d.InitFuncCall()
+}
+```
+
+下图以使用 `InitAll` 同时初始化两种入口为例：
+
 ```mermaid
 flowchart TD
     Main["main"] --> Cfg["加载配置"]
@@ -236,19 +251,20 @@ flowchart TD
     InitSvcs --> InitGin["initGin()：创建 Engine，配置中间件"]
     InitSvcs --> InitDomain["initDomain()：组装各 domain 和调用入口"]
     InitDomain --> DomainNew["调用各 domain.New(params)：创建 Domain 和内部 svc"]
-    DomainNew --> InitFuncCall["调用各 domain.InitFuncCall()：绑定公共 svc"]
-    InitFuncCall --> Routes["调用所需 domain.InitHttp(route)：注册路由"]
+    DomainNew --> InitAll["调用 domain.InitAll(engine)"]
+    InitAll --> Routes["InitHttp(engine)：注册路由"]
+    Routes --> InitFuncCall["InitFuncCall()：绑定公共 svc"]
     InitDb --> Ready["InitSvcs() 全部成功返回"]
     InitXXX --> Ready
     InitGin --> Ready
-    Routes --> Ready
+    InitFuncCall --> Ready
     Ready --> Server["外层创建 HTTP Server，使用已注册路由的 Engine"]
     Server --> Run["Run：启动监听，开始接收请求"]
 ```
 
-需要调用的 funcCall 包应在业务调用开始前完成 `Init`。创建 domain 和绑定公共 svc 的阶段不调用尚未就绪的其他 domain 业务入口；所有需要的 funcCall 初始化完成后，再注册入口并启动请求处理或后台任务。任一步创建或初始化失败时，由外层停止启动并按资源归属清理已创建的资源。
+需要调用的 funcCall 包应在业务调用开始前完成 `Init`。创建 domain、注册 HTTP 路由和绑定公共 svc 的阶段不调用尚未就绪的其他 domain 业务入口。`InitHttp` 只注册路由，因此可以先于 `InitFuncCall` 执行；所有需要的入口初始化成功后，才启动请求处理或后台任务。任一步创建或初始化失败时，由外层停止启动并按资源归属清理已创建的资源。
 
-`New` 负责创建可用的 domain 和 svc 实例；`InitHttp` 负责注册 HTTP 入口；`InitFuncCall` 负责初始化 funcCall 包级入口，后两者均返回 `error`。这些入口复用已有 svc，不重复创建数据库连接或业务实例，也不启动 HTTP 监听。是否提供入口取决于场景，仅提供 HTTP 服务时可不提供 `InitFuncCall`。
+`New` 负责创建可用的 domain 和 svc 实例；`InitHttp` 负责注册 HTTP 入口；`InitFuncCall` 负责初始化 funcCall 包级入口；`InitAll` 组合后两者，遇到错误立即返回。这些初始化方法均返回 `error`，复用已有 svc，不重复创建数据库连接或业务实例，也不启动 HTTP 监听。是否提供入口取决于场景，仅提供 HTTP 服务时可不提供 `InitFuncCall` 和 `InitAll`。
 
 例如，库存 `funcCall/0.go` 绑定公共 svc，包内的业务函数直接使用该实例（省略 import，`svc` 为本 domain 的 svc 包）：
 
@@ -325,7 +341,7 @@ xxx.Init(params)     -> error             // 初始化包级状态
 
 `New` 应完成实例可用所需的初始化。通常无需调用方再执行一次 `Init`；只有需要分阶段初始化时，才额外提供 `Init`，并明确调用时机和前置条件。
 
-`Init`、`InitHttp`、`InitFuncCall` 等初始化方法统一返回 `error`，成功时返回 `nil`。例如，`funcCall.Init(svc)` 初始化包级共享状态，不创建并返回 svc。获取已有对象或资源的方法按其业务含义命名，不使用 `Init` 前缀。
+`Init`、`InitHttp`、`InitFuncCall`、`InitAll` 等初始化方法统一返回 `error`，成功时返回 `nil`。例如，`funcCall.Init(svc)` 初始化包级共享状态，不创建并返回 svc。获取已有对象或资源的方法按其业务含义命名，不使用 `Init` 前缀。
 
 ### 生命周期方法命名
 
@@ -337,6 +353,7 @@ xxx.Init(params)     -> error             // 初始化包级状态
 `Init` | 初始化已有实例或包级状态，返回 error，不返回实例
 `InitHttp` | 注册 HTTP 路由、注入 handler 依赖，返回 error，不启动监听
 `InitFuncCall` | 调用 funcCall 包的 Init，绑定已有公共 svc，返回 error
+`InitAll` | 依次调用 InitHttp 和 InitFuncCall，遇到错误立即返回，不启动服务
 `Run` | 启动服务，例如监听端口或运行后台任务
 `Close` | 释放组件自身拥有的资源
 `Shutdown(ctx)` | 在需要优雅停机时，停止接收新工作，等待在途工作结束，并按资源归属完成清理
