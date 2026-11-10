@@ -229,7 +229,7 @@ err = d.InitFuncCall()  // 按需初始化进程内函数调用入口
   -> 返回 error，成功时为 nil
 ```
 
-同时需要 HTTP 和 funcCall 入口时，可以提供 `InitAll(engine) error`，依次调用 `InitHttp(engine)` 和 `InitFuncCall()`。只需一种入口时，仍可单独调用相应方法。
+同时需要 HTTP 和 funcCall 入口时，可以提供 `InitAll(engine) error`，依次调用 `InitHttp(engine)` 和 `InitFuncCall()`。
 
 ```go
 func (d *Domain) InitAll(engine *gin.Engine) error {
@@ -264,7 +264,7 @@ flowchart TD
 
 需要调用的 funcCall 包，都应在业务调用开始前完成 `Init`。创建 domain、注册 HTTP 路由、绑定公共 svc 等阶段，不要调用尚未就绪的其他 domain 业务入口。`InitHttp` 只注册路由，因此可以先于 `InitFuncCall` 执行；等所有需要的入口都初始化成功，才启动请求处理或后台任务。任一步创建或初始化失败时，由外层停止启动，并按资源归属清理已创建的资源。
 
-`New` 负责创建可用的 domain 和 svc 实例；`InitHttp` 负责注册 HTTP 入口；`InitFuncCall` 负责初始化 funcCall 包级入口；`InitAll` 组合后两者，遇到错误立即返回。这些初始化方法都返回 `error`，只复用已有 svc，不重复创建数据库连接或业务实例，也不启动 HTTP 监听。是否提供某个入口取决于场景：仅提供 HTTP 服务时，可以不提供 `InitFuncCall` 和 `InitAll`。
+这些初始化方法都返回 `error`，只复用已有 svc，不重复创建数据库连接或业务实例，也不启动 HTTP 监听；各自的职责划分见下文「生命周期方法命名」。是否提供某个入口取决于场景：仅提供 HTTP 服务时，可以不提供 `InitFuncCall` 和 `InitAll`。
 
 例如，库存 `funcCall/0.go` 绑定公共 svc，包内的业务函数直接使用该实例（省略 import，`svc` 为本 domain 的 svc 包）：
 
@@ -314,9 +314,9 @@ if err := orderDomain.InitHttp(route); err != nil {
 }
 ```
 
-handler 调用订单 svc，订单 svc 直接调用 `inventoryFuncCall.DeductStock(productID, quantity)`；库存 funcCall 使用 `Init` 已绑定的公共 svc 执行业务。整个调用过程复用已有 svc，不重复创建数据库连接或业务实例。
+handler 调用订单 svc，订单 svc 直接调用 `inventoryFuncCall.DeductStock(productID, quantity)`；库存 funcCall 使用 `Init` 已绑定的公共 svc 执行业务。
 
-funcCall 只保存公共 svc 的引用，不接管其资源生命周期；调用方和 funcCall 均不得关闭其他 domain 或共享连接池，资源仍由创建它们的组件统一管理。
+funcCall 只保存公共 svc 的引用，不负责关闭它；连接池等资源的归属和释放规则见下文「资源归属与释放」。
 
 这种结构主要用于隔离依赖和管理实例。是否采用，要看业务复杂度和依赖管理需求，不必仅仅因为请求量增加就把所有 svc 改为对象。
 
@@ -326,7 +326,7 @@ funcCall 只保存公共 svc 的引用，不接管其资源生命周期；调用
 
 `0.go` 是团队约定的初始化入口文件名，可以继续使用，无需统一改成 `init.go`。文件名只用于组织代码，不要依赖文件名来决定初始化顺序。
 
-Go 中普通函数的执行顺序由显式调用决定。`New`、`Init` 都是普通函数，不会因为放在 `0.go` 里就自动执行，和 Go 自动调用的 `init()` 不是一回事。资源和业务实例之间有初始化依赖时，外层组件应按依赖顺序显式调用。
+`New`、`Init` 都是普通函数，不会因为放在 `0.go` 里就自动执行，和 Go 自动调用的 `init()` 不是一回事。资源和业务实例之间有初始化依赖时，外层组件应按依赖顺序显式调用。
 
 ### New 与 Init 的语义
 
