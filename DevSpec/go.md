@@ -166,16 +166,15 @@ Scale 模式下，每个 domain 可提供 `funcCall` 包作为进程内调用的
 ```txt
 handler
   -> 本 domain 的 svc
-  -> funcCall 公开业务接口
+  -> funcCall 包级业务函数
 
 svc
   -> 本 domain 的 dao
   -> 本 domain 的其他 svc
-  -> 其他 domain 的 funcCall 公开业务接口
+  -> 其他 domain 的 funcCall 包级业务函数
 
-funcCall 公开业务接口
-  -> 由被调用 domain 提供的实现
-    -> 该 domain 内部的 svc
+funcCall 包级业务函数
+  -> 通过 Init 绑定的本 domain 公共 svc
 ```
 
 ```mermaid
@@ -223,8 +222,9 @@ err = d.InitHttp(route) // 按需注册 HTTP 入口
   -> 注册路由
   -> 返回 error，成功时为 nil
 
-api := d.FuncCall()     // 获取进程内函数调用接口
-  -> 返回基于 d 已有 svc 的 funcCall.API 实现
+err = d.InitFuncCall()  // 按需初始化进程内函数调用入口
+  -> 调用 funcCall.Init(d.svc)，绑定已有公共 svc
+  -> 返回 error，成功时为 nil
 ```
 
 ```mermaid
@@ -298,9 +298,9 @@ if err := orderDomain.InitHttp(route); err != nil {
 }
 ```
 
-订单 domain 在 `New` 中将 `Inventory` 继续注入内部 svc。handler 调用订单 svc，订单 svc 再通过 `Inventory` 调用库存业务能力；库存 domain 的接口实现委托给自身的 svc。`FuncCall()` 复用已有 svc，不重复创建数据库连接或业务实例。
+handler 调用订单 svc，订单 svc 直接调用 `inventoryFuncCall.DeductStock(productID, quantity)`；库存 funcCall 使用 `Init` 已绑定的公共 svc 执行业务。调用过程复用已有 svc，不重复创建数据库连接或业务实例。
 
-注入 funcCall 接口只传递调用能力，不转移资源归属；调用方不得关闭被调用 domain 或其共享资源。
+funcCall 只保存公共 svc 的引用，不接管其资源生命周期；调用方和 funcCall 均不得关闭其他 domain 或共享连接池，资源仍由创建它们的组件统一管理。
 
 这种结构主要用于隔离依赖和管理实例。是否采用，应根据业务复杂度和依赖管理需求决定，无需仅因请求量增加就将所有 svc 改为对象。
 
