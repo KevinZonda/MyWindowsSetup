@@ -83,9 +83,9 @@ main()
 domain/
     -> 0.go: 组装各个 domain，传入所需资源，并按需初始化调用入口
     -> $domainName/
-        -> 0.go: 定义 Domain、初始化参数和 Init，创建并持有 svc 实例
+        -> 0.go: 定义 Domain、构造参数和 New，创建并持有 svc 实例
         -> init_http.go: 可选，注册 HTTP 路由，将所需 svc 和 funcCall 接口注入 handler
-        -> init_func_call.go: 可选，实现公开业务接口，复用已有 svc 实例
+        -> func_call.go: 可选，实现公开业务接口，通过 FuncCall 返回，复用已有 svc 实例
         -> funcCall/: 定义对外业务接口及其入参、返回值类型
         -> dao/: 数据库、文件等资源的原子操作，所需资源由调用方传入
         -> svc/: 定义服务对象，持有所需资源，并通过方法实现业务逻辑
@@ -113,7 +113,7 @@ funcCall 公开业务接口
 
 handler 负责请求解析、业务调用和响应处理，不调用 dao 或其他 handler。svc 可以组合本 domain 的其他 svc，也可以通过其他 domain 的 funcCall 编排跨领域业务；业务步骤、条件判断和失败处理放在 svc 中。dao 只在所属 domain 内使用。
 
-`funcCall` 包只定义公开接口及必要的数据类型，不导入本 domain 的 svc、dao 或根包，也不导入调用方的业务实现。接口实现放在 domain 根包的 `init_func_call.go` 中，或放在独立适配包中，再由 domain 组装。实现可以调用内部 svc，但不能因此让 `funcCall` 契约包反向依赖内部实现。
+`funcCall` 包只定义公开接口及必要的数据类型，不导入本 domain 的 svc、dao 或根包，也不导入调用方的业务实现。接口实现放在 domain 根包的 `func_call.go` 中，或放在独立适配包中，再由 domain 组装。实现可以调用内部 svc，但不能因此让 `funcCall` 契约包反向依赖内部实现。
 
 公开接口应表达业务能力，不直接暴露内部 svc、dao 或数据库连接。调用方持有注入的接口，不持有其他 domain 的具体 svc 对象；双方仍存在业务依赖，只是通过公开契约隔离实现。
 
@@ -121,23 +121,24 @@ handler 负责请求解析、业务调用和响应处理，不调用 dao 或其�
 
 #### 初始化与依赖组装
 
-初始化流程示意：
+创建实例并注册入口的流程示意（以可能失败的构造函数为例，展示成功路径）：
 
 ```txt
-d := domain1.Init(params)
+d, err := domain1.New(params)
   -> svc := &domain1Svc.Service{DB: params.DB, Z: params.Z}
   -> d := &Domain{svc: svc}
-  -> 返回 d
+  -> 返回 d, nil
 
-d.InitHttp(route)       // 按需启用 HTTP 入口
+err = d.InitHttp(route) // 按需注册 HTTP 入口
   -> 创建 handler，注入 d 持有的 svc
   -> 注册路由
+  -> 返回 error，成功时为 nil
 
-api := d.InitFuncCall() // 按需提供进程内函数调用接口
+api := d.FuncCall()     // 获取进程内函数调用接口
   -> 返回基于 d 已有 svc 的 funcCall.API 实现
 ```
 
-`Init` 负责创建实例，`InitHttp`、`InitFuncCall` 等方法负责初始化不同的调用入口，并复用已创建的 svc。是否拆分入口、入口如何暴露，取决于具体场景；仅提供 HTTP 服务时，调用入口可以只保留 `InitHttp`，实例仍由 `Init` 创建。
+`New` 负责创建可用的 domain 和 svc 实例；`InitHttp` 负责注册 HTTP 入口，返回 `error`；`FuncCall` 负责获取基于已有 svc 的公开业务接口。是否拆分入口、入口如何暴露，取决于具体场景；仅提供 HTTP 服务时，可以只提供 `InitHttp` 入口，实例仍由 `New` 创建。
 
 例如，订单 svc 通过库存 domain 的 funcCall 扣减库存，可以持有如下依赖（省略 import，`inventoryFuncCall` 为库存 domain 的 funcCall 包别名）：
 
@@ -151,17 +152,25 @@ type Service struct {
 外层初始化代码先创建库存 domain，再将其公开接口注入订单 domain：
 
 ```go
-inventoryDomain := inventory.Init(inventoryParams)
+inventoryDomain, err := inventory.New(inventoryParams)
+if err != nil {
+    return err
+}
 
-orderDomain := order.Init(order.Params{
+orderDomain, err := order.New(order.Params{
     DB:        db,
-    Inventory: inventoryDomain.InitFuncCall(),
+    Inventory: inventoryDomain.FuncCall(),
 })
+if err != nil {
+    return err
+}
 
-orderDomain.InitHttp(route)
+if err := orderDomain.InitHttp(route); err != nil {
+    return err
+}
 ```
 
-订单 domain 在 `Init` 中将 `Inventory` 继续注入内部 svc。handler 调用订单 svc，订单 svc 再通过 `Inventory` 调用库存业务能力；库存 domain 的接口实现委托给自身的 svc。`InitFuncCall()` 复用已有 svc，不重复创建数据库连接或业务实例。
+订单 domain 在 `New` 中将 `Inventory` 继续注入内部 svc。handler 调用订单 svc，订单 svc 再通过 `Inventory` 调用库存业务能力；库存 domain 的接口实现委托给自身的 svc。`FuncCall()` 复用已有 svc，不重复创建数据库连接或业务实例。
 
 注入 funcCall 接口只传递调用能力，不转移资源归属；调用方不得关闭被调用 domain 或其共享资源。
 
@@ -173,7 +182,22 @@ orderDomain.InitHttp(route)
 
 `0.go` 是团队约定的初始化入口文件名，可以继续使用，无需统一改成 `init.go`。文件名只用于组织代码，禁止依赖文件名决定初始化顺序。
 
-Go 普通函数的执行顺序由显式调用决定。`Init` 是普通函数，不会因为位于 `0.go` 中而自动执行，也不同于 Go 自动调用的 `init()`。资源和业务实例之间存在初始化依赖时，应由外层组件按依赖顺序显式调用。
+Go 普通函数的执行顺序由显式调用决定。`New`、`Init` 都是普通函数，不会因为位于 `0.go` 中而自动执行，也不同于 Go 自动调用的 `init()`。资源和业务实例之间存在初始化依赖时，应由外层组件按依赖顺序显式调用。
+
+### New 与 Init 的语义
+
+`New` 创建并返回新实例；`Init` 初始化已有实例或包级状态，不返回实例。签名按以下约定选择：
+
+```txt
+xxx.New(params)      -> instance           // 构造过程不会失败
+xxx.New(params)      -> (instance, error)  // 构造过程可能失败
+instance.Init(params) -> error            // 初始化已有实例
+xxx.Init(params)     -> error             // 初始化包级状态
+```
+
+`New` 应完成实例可用所需的初始化。通常无需调用方再执行一次 `Init`；只有需要分阶段初始化时，才额外提供 `Init`，并明确调用时机和前置条件。
+
+`Init` 及 `InitHttp` 等初始化方法统一返回 `error`，成功时返回 `nil`。获取已有对象或接口的方法按其业务含义命名，例如 `FuncCall()`；这类方法不使用 `Init` 前缀。
 
 ### 生命周期方法命名
 
@@ -181,9 +205,10 @@ Go 普通函数的执行顺序由显式调用决定。`Init` 是普通函数，�
 
 方法 | 职责
 :--- | :---
-`Init` | 创建资源和业务实例，接收并组装依赖
-`InitHttp` | 注册 HTTP 路由、注入 handler 依赖，不启动监听
-`InitFuncCall` | 按需提供进程内函数调用入口；Scale 模式下返回基于已有 svc 的 funcCall 公开接口实现
+`New` | 创建并返回实例，接收并组装依赖；可能失败时同时返回 error
+`Init` | 初始化已有实例或包级状态，返回 error，不返回实例
+`InitHttp` | 注册 HTTP 路由、注入 handler 依赖，返回 error，不启动监听
+`FuncCall` | 返回基于已有 svc 的 funcCall 公开接口实现
 `Run` | 启动服务，例如监听端口或运行后台任务
 `Close` | 释放组件自身拥有的资源
 `Shutdown(ctx)` | 在需要优雅停机时，停止接收新工作，等待在途工作结束，并按资源归属完成清理
