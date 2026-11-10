@@ -227,30 +227,32 @@ xxx.Init(params)     -> error             // 初始化包级状态
 
 ## 缩写约定
 
-缩写 | 英文全称及中文含义
-:--- | :---
-svc | service，服务
-svr | server，服务端
-clt | client，客户端
-cli | command line interface，命令行界面
-cfg | config，配置
-rcv/recv | receive，接收
-req | request，请求
-resp | response，响应
-gen | generate，生成
-oper | operator，操作或运算符
-neg | negative，负值或否定
-pub | public，公开的
-priv | private，私有的
-fk | foreign key，外键
-pk | public key / primary key，公钥或主键
-sk | secret key / private key，密钥或私钥
-sec | secret，秘密
-ptr | pointer，指针
-fx/func | function，函数
-incr/inc | increase，增加
-dec | decode / decrease，解码或减少
-plt | plot，绘图
-opt | option，选项
-unk | unknown，未知
-mk | make，创建
+缩写 | 英文全称 | 中文含义
+:--- | :--- | :---
+svc | service | 服务
+svr | server | 服务端
+clt | client | 客户端
+cli | command line interface | 命令行界面
+cfg | config | 配置
+rcv/recv | receive | 接收
+req | request | 请求
+resp | response | 响应
+gen | generate | 生成
+oper | operator | 操作或运算符
+neg | negative | 负值或否定
+pub | public | 公开的
+priv | private | 私有的
+fk | foreign key | 外键
+pk | public key / primary key | 公钥或主键
+sk | secret key / private key | 密钥或私钥
+pubk | public key | 公钥
+seck, privk  | secret key / private key | 密钥或私钥
+sec | secret | 秘密
+ptr | pointer | 指针
+fx/func | function | 函数
+incr/inc | increase | 增加
+dec | decode / decrease | 解码或减少
+plt | plot | 绘图
+opt | option | 选项
+unk | unknown | 未知
+mk | make | 创建
