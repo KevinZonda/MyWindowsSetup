@@ -91,6 +91,53 @@ main()
         -> svc2.InitRoute(eng)
 ```
 
+#### 依赖关系
+
+```mermaid
+flowchart TB
+    subgraph DomainA["domain A"]
+        HandlerA["handler"] --> SvcA["svc 包级函数"]
+        SvcA --> DaoA["dao"]
+    end
+    subgraph DomainB["domain B"]
+        SvcB["svc 包级函数"] --> DaoB["dao"]
+    end
+    HandlerA -->|跨 domain 调用| SvcB
+    SvcA -->|跨 domain 调用| DaoB
+    SvcA -->|获取共享资源| SharedDB["shared 中的 DB 等资源"]
+    SvcB -->|获取共享资源| SharedDB
+    DaoA -->|使用传入的 DB 或事务| SharedDB
+    DaoB -->|使用传入的 DB 或事务| SharedDB
+```
+
+
+#### Bootstrap 启动顺序
+
+```mermaid
+flowchart TD
+    Main["main / bootstrap"] --> Cfg["shared.InitCfg(bytes)"]
+    Cfg --> InitSvcs
+    InitSvcs --> InitDb
+    InitSvcs --> InitXXX
+    InitSvcs --> InitGin
+    InitSvcs --> InitDomain
+    subgraph svcInit
+        InitSvcs["bootstrap.InitSvcs()"]
+        InitDb["initDb()"]
+        InitXXX["initXXX()"]
+        InitGin["initGin()"]
+        InitDomain["initDomain()"]
+        
+        subgraph domainInit
+            domain1
+            InitDomain --> domain1["domain1.InitRoute(engine)"]
+            InitDomain --> domain2["domain2.InitRoute(engine)"]
+        end
+    end
+    
+    svcInit --> Run["Run：启动监听，开始接收请求"]
+```
+
 ### 目录结构扩展：Scale Web 服务端
 
 业务规模较小时，svc 可以采用包级函数（静态函数）的形式，通过包级变量或 shared 获取所需资源。随着业务复杂度增加，如果需要隔离依赖、支持不同配置的服务实例，或方便测试时替换依赖，可以将 svc 改为对象，由实例持有数据库等资源。
@@ -102,17 +149,19 @@ domain/
     -> 0.go: 组装各个 domain，传入所需资源，并按需初始化调用入口
     -> $domainName/
         -> 0.go: 定义 Domain、构造参数和 New，创建并持有 svc 实例
-        -> init_http.go: 可选，注册 HTTP 路由，将所需 svc 和 funcCall 接口注入 handler
-        -> func_call.go: 可选，实现公开业务接口，通过 FuncCall 返回，复用已有 svc 实例
-        -> funcCall/: 定义对外业务接口及其入参、返回值类型
+        -> init_http.go: 可选，注册 HTTP 路由，将本 domain 的 svc 注入 handler
+        -> init_func_call.go: 可选，定义 InitFuncCall，调用 funcCall.Init 绑定公共 svc
+        -> funcCall/: 对外提供包级业务函数
+            -> 0.go: 定义 Init，初始化包级共享状态，绑定供外部调用的 svc
+            -> $operation.go: 通过公共 svc 执行业务操作
         -> dao/: 数据库、文件等资源的原子操作，所需资源由调用方传入
         -> svc/: 定义服务对象，持有所需资源，并通过方法实现业务逻辑
-        -> handler/: 定义 HTTP 请求处理对象，持有所需的本 domain svc 和 funcCall 接口
+        -> handler/: 定义 HTTP 请求处理对象，调用本 domain 的 svc 或 funcCall 包级函数
 ```
 
 #### 分层调用与 funcCall
 
-Scale 模式下，每个 domain 可提供 `funcCall` 包作为进程内调用的公开业务契约。跨 domain 的调用统一经过该契约，不直接访问对方内部的 svc 或 dao。
+Scale 模式下，每个 domain 可提供 `funcCall` 包作为进程内调用的公开业务入口。`funcCall` 对外都是包级函数（静态函数），需要使用 svc 时，通过 `funcCall/0.go` 中的 `Init(...) error` 绑定公共 svc，供该包的函数共享使用。
 
 ```txt
 handler
@@ -129,13 +178,35 @@ funcCall 公开业务接口
     -> 该 domain 内部的 svc
 ```
 
+```mermaid
+flowchart TB
+    subgraph Order["订单 domain"]
+        OrderDomain["Domain 实例"] -->|持有| OrderSvc["订单 svc"]
+        OrderHandler["handler"] --> OrderSvc
+        OrderSvc --> OrderDao["dao"]
+        OrderSvc --> LocalSvc["同 domain 的其他 svc"]
+        LocalSvc --> OrderDao
+    end
+    subgraph Inventory["库存 domain"]
+        InventoryDomain["Domain 实例"] -->|持有| InventorySvc["库存 svc"]
+        InventoryFuncCall["funcCall 包级函数"] -->|使用 Init 绑定的公共实例| InventorySvc
+        InventorySvc --> InventoryDao["dao"]
+    end
+    OrderSvc -->|直接调用| InventoryFuncCall
+    OrderHandler -->|也可直接调用| InventoryFuncCall
+    OrderSvc -->|持有引用| DB["外层创建的 DB 等资源"]
+    InventorySvc -->|持有引用| DB
+```
+
+订单侧导入库存的 `funcCall` 包，直接调用其公开函数；库存 funcCall 再使用已初始化的公共 svc。调用方不持有库存 svc，也不需要注入接口对象。dao 所需的 DB 或事务由本 domain 的 svc 传入，图中省略了这部分资源使用连线。
+
 handler 负责请求解析、业务调用和响应处理，不调用 dao 或其他 handler。svc 可以组合本 domain 的其他 svc，也可以通过其他 domain 的 funcCall 编排跨领域业务；业务步骤、条件判断和失败处理放在 svc 中。dao 只在所属 domain 内使用。
 
-`funcCall` 包只定义公开接口及必要的数据类型，不导入本 domain 的 svc、dao 或根包，也不导入调用方的业务实现。接口实现放在 domain 根包的 `func_call.go` 中，或放在独立适配包中，再由 domain 组装。实现可以调用内部 svc，但不能因此让 `funcCall` 契约包反向依赖内部实现。
+`funcCall` 包可以依赖本 domain 的 svc，但不导入 domain 根包，也不直接调用 dao。domain 根包负责创建 svc，并可通过 `InitFuncCall() error` 调用 `funcCall.Init(d.svc)`，将已有实例绑定为该包的公共 svc。
 
-公开接口应表达业务能力，不直接暴露内部 svc、dao 或数据库连接。调用方持有注入的接口，不持有其他 domain 的具体 svc 对象；双方仍存在业务依赖，只是通过公开契约隔离实现。
+funcCall 的公开函数应表达业务能力，不直接返回内部 svc、dao 或数据库连接。调用方通过包级函数使用其他 domain 的能力，不直接访问对方的内部实现。
 
-同 domain 的 svc 之间应保持单向依赖，跨 domain 的调用也应避免循环。初始化时按依赖顺序创建实例并注入接口，不通过包级全局变量查找其他 domain 的实例。
+同 domain 的 svc 之间应保持单向依赖，跨 domain 的 funcCall 调用也应保持单向，避免形成循环导入。公共 svc 在启动阶段显式绑定，业务调用开始后不再替换。每个 funcCall 包共享一套已绑定的 svc，不能通过同一套包级函数区分多个 domain 实例。
 
 #### 初始化与依赖组装
 
@@ -156,18 +227,56 @@ api := d.FuncCall()     // 获取进程内函数调用接口
   -> 返回基于 d 已有 svc 的 funcCall.API 实现
 ```
 
-`New` 负责创建可用的 domain 和 svc 实例；`InitHttp` 负责注册 HTTP 入口，返回 `error`；`FuncCall` 负责获取基于已有 svc 的公开业务接口。是否拆分入口、入口如何暴露，取决于具体场景；仅提供 HTTP 服务时，可以只提供 `InitHttp` 入口，实例仍由 `New` 创建。
+```mermaid
+flowchart TD
+    Main["main / bootstrap"] --> Cfg["加载配置"]
+    Cfg --> InitSvcs["bootstrap.InitSvcs()"]
+    InitSvcs --> InitDb["initDb()：创建 DB"]
+    InitSvcs --> InitXXX["initXXX()：创建 Redis 等其他共享资源"]
+    InitSvcs --> InitGin["initGin()：创建 Engine，配置中间件"]
+    InitSvcs --> InitDomain["initDomain()：组装各 domain 和调用入口"]
+    InitDomain --> DomainNew["调用各 domain.New(params)：创建 Domain 和内部 svc"]
+    DomainNew --> InitFuncCall["调用各 domain.InitFuncCall()：绑定公共 svc"]
+    InitFuncCall --> Routes["调用所需 domain.InitHttp(route)：注册路由"]
+    InitDb --> Ready["InitSvcs() 全部成功返回"]
+    InitXXX --> Ready
+    InitGin --> Ready
+    Routes --> Ready
+    Ready --> Server["外层创建 HTTP Server，使用已注册路由的 Engine"]
+    Server --> Run["Run：启动监听，开始接收请求"]
+```
 
-例如，订单 svc 通过库存 domain 的 funcCall 扣减库存，可以持有如下依赖（省略 import，`inventoryFuncCall` 为库存 domain 的 funcCall 包别名）：
+需要调用的 funcCall 包应在业务调用开始前完成 `Init`。创建 domain 和绑定公共 svc 的阶段不调用尚未就绪的其他 domain 业务入口；所有需要的 funcCall 初始化完成后，再注册入口并启动请求处理或后台任务。任一步创建或初始化失败时，由外层停止启动并按资源归属清理已创建的资源。
+
+`New` 负责创建可用的 domain 和 svc 实例；`InitHttp` 负责注册 HTTP 入口；`InitFuncCall` 负责初始化 funcCall 包级入口，后两者均返回 `error`。这些入口复用已有 svc，不重复创建数据库连接或业务实例，也不启动 HTTP 监听。是否提供入口取决于场景，仅提供 HTTP 服务时可不提供 `InitFuncCall`。
+
+例如，库存 `funcCall/0.go` 绑定公共 svc，包内的业务函数直接使用该实例（省略 import，`svc` 为本 domain 的 svc 包）：
 
 ```go
-type Service struct {
-    DB        *sql.DB
-    Inventory inventoryFuncCall.API
+var sharedSvc *svc.Service
+
+func Init(s *svc.Service) error {
+    if s == nil {
+        return errors.New("inventory funcCall: svc is nil")
+    }
+    sharedSvc = s
+    return nil
+}
+
+func DeductStock(productID string, quantity int) error {
+    return sharedSvc.DeductStock(productID, quantity)
 }
 ```
 
-外层初始化代码先创建库存 domain，再将其公开接口注入订单 domain：
+domain 根包的 `InitFuncCall` 方法只负责转交已有 svc，`inventoryFuncCall` 为本 domain 的 funcCall 包别名：
+
+```go
+func (d *Domain) InitFuncCall() error {
+    return inventoryFuncCall.Init(d.svc)
+}
+```
+
+外层初始化代码创建 domain 后，显式初始化包级入口（省略其他 domain 的同类步骤）：
 
 ```go
 inventoryDomain, err := inventory.New(inventoryParams)
@@ -175,11 +284,12 @@ if err != nil {
     return err
 }
 
-orderDomain, err := order.New(order.Params{
-    DB:        db,
-    Inventory: inventoryDomain.FuncCall(),
-})
+orderDomain, err := order.New(orderParams)
 if err != nil {
+    return err
+}
+
+if err := inventoryDomain.InitFuncCall(); err != nil {
     return err
 }
 
@@ -215,7 +325,7 @@ xxx.Init(params)     -> error             // 初始化包级状态
 
 `New` 应完成实例可用所需的初始化。通常无需调用方再执行一次 `Init`；只有需要分阶段初始化时，才额外提供 `Init`，并明确调用时机和前置条件。
 
-`Init` 及 `InitHttp` 等初始化方法统一返回 `error`，成功时返回 `nil`。获取已有对象或接口的方法按其业务含义命名，例如 `FuncCall()`；这类方法不使用 `Init` 前缀。
+`Init`、`InitHttp`、`InitFuncCall` 等初始化方法统一返回 `error`，成功时返回 `nil`。例如，`funcCall.Init(svc)` 初始化包级共享状态，不创建并返回 svc。获取已有对象或资源的方法按其业务含义命名，不使用 `Init` 前缀。
 
 ### 生命周期方法命名
 
@@ -226,7 +336,7 @@ xxx.Init(params)     -> error             // 初始化包级状态
 `New` | 创建并返回实例，接收并组装依赖；可能失败时同时返回 error
 `Init` | 初始化已有实例或包级状态，返回 error，不返回实例
 `InitHttp` | 注册 HTTP 路由、注入 handler 依赖，返回 error，不启动监听
-`FuncCall` | 返回基于已有 svc 的 funcCall 公开接口实现
+`InitFuncCall` | 调用 funcCall 包的 Init，绑定已有公共 svc，返回 error
 `Run` | 启动服务，例如监听端口或运行后台任务
 `Close` | 释放组件自身拥有的资源
 `Shutdown(ctx)` | 在需要优雅停机时，停止接收新工作，等待在途工作结束，并按资源归属完成清理
