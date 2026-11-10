@@ -2,17 +2,21 @@
 
 ## 技术栈
 
-技术选型统一遵循以下约定：
+技术选型统一遵循以下约定，依赖使用官方 Go 模块路径：
 
 技术栈 | 选用规则
 :--- | :---
-Gin | 总是选用
-GORM | 总是选用
-KevinZonda/GoX | 总是选用
-logrus | 总是选用
-egoist/mygo | 开发 GUI 或桌面应用时选用
-joho/godotenv | 使用 `.env` 文件时选用
-air-verse/air | 需要热重载时选用
+github.com/gin-gonic/gin | 需要 Web Server 时选用
+gorm.io/gorm | 需要数据库时选用
+github.com/KevinZonda/GoX | 总是选用
+github.com/sirupsen/logrus | 总是选用
+github.com/egoist/mygo | 开发 GUI 或桌面应用时选用
+github.com/joho/godotenv | 使用 `.env` 文件时选用
+github.com/air-verse/air | 需要热重载时选用
+github.com/gin-contrib/cors | 需要 CORS 支持时选用
+github.com/golang-jwt/jwt/v5 | 使用 JWT 时选用
+github.com/ulule/limiter/v3 | 需要 Gin 限流时选用
+github.com/getkin/kin-openapi | 需要 OpenAPI 校验时选用
 
 ## 目录结构
 
