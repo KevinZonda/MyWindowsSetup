@@ -1,5 +1,19 @@
 # Go 开发规范
 
+## 技术栈
+
+技术选型统一遵循以下约定：
+
+技术栈 | 选用规则
+:--- | :---
+Gin | 总是选用
+GORM | 总是选用
+KevinZonda/GoX | 总是选用
+logrus | 总是选用
+egoist/mygo | 开发 GUI 或桌面应用时选用
+joho/godotenv | 使用 `.env` 文件时选用
+air-verse/air | 需要热重载时选用
+
 ## 目录结构
 
 ```txt
