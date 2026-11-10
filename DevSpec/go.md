@@ -111,18 +111,18 @@ flowchart TB
 ```
 
 
-#### Bootstrap 启动顺序
+#### 启动顺序
 
 ```mermaid
 flowchart TD
-    Main["main / bootstrap"] --> Cfg["shared.InitCfg(bytes)"]
+    Main["main"] --> Cfg["shared.InitCfg(bytes)"]
     Cfg --> InitSvcs
     InitSvcs --> InitDb
     InitSvcs --> InitXXX
     InitSvcs --> InitGin
     InitSvcs --> InitDomain
     subgraph svcInit
-        InitSvcs["bootstrap.InitSvcs()"]
+        InitSvcs["shared.InitSvcs()"]
         InitDb["initDb()"]
         InitXXX["initXXX()"]
         InitGin["initGin()"]
@@ -229,8 +229,8 @@ api := d.FuncCall()     // 获取进程内函数调用接口
 
 ```mermaid
 flowchart TD
-    Main["main / bootstrap"] --> Cfg["加载配置"]
-    Cfg --> InitSvcs["bootstrap.InitSvcs()"]
+    Main["main"] --> Cfg["加载配置"]
+    Cfg --> InitSvcs["shared.InitSvcs()"]
     InitSvcs --> InitDb["initDb()：创建 DB"]
     InitSvcs --> InitXXX["initXXX()：创建 Redis 等其他共享资源"]
     InitSvcs --> InitGin["initGin()：创建 Engine，配置中间件"]
